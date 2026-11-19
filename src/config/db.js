@@ -25,7 +25,7 @@ export const connectDB = async () => {
   }
 };
 
-export const getDb = () => {
+export const getDB = () => {
   if (!db) {
     throw new Error('Database is not connected yet');
   }

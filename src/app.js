@@ -1,5 +1,6 @@
 import express from 'express';
 import cors from 'cors';
+import protectedRoutes from './routes/protectedRoutes.js';
 
 const app = express();
 
@@ -10,6 +11,8 @@ app.use(
     credentials: true,
   })
 );
+
+app.use('/api/protected', protectedRoutes);
 
 app.use(express.json());
 
