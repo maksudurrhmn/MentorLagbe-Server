@@ -5,6 +5,7 @@ import {
   createApplication,
   getTutorApplications,
   updateApplicationStatus,
+  getMyApplications,
 } from '../controllers/applicationController.js';
 
 const router = express.Router();
@@ -17,5 +18,8 @@ router.get('/tutor', verifyToken, verifyRole('tutor'), getTutorApplications);
 
 // Update application status
 router.patch('/:id/status', verifyToken, verifyRole('tutor'), updateApplicationStatus);
+
+// Get my application
+router.get('/my', verifyToken, verifyRole('student'), getMyApplications);
 
 export default router;

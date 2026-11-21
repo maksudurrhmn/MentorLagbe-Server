@@ -214,3 +214,42 @@ export const updateApplicationStatus = async (req, res) => {
     });
   }
 };
+
+// Get my applications
+export const getMyApplications = async (req, res) => {
+  try {
+    const db = getDB();
+
+    const student = await db.collection('users').findOne({
+      _id: new ObjectId(req.user.id),
+    });
+
+    if (!student) {
+      return res.status(404).json({
+        success: false,
+        message: 'Student account not found.',
+      });
+    }
+
+    const applications = await db
+      .collection('applications')
+      .find({
+        studentEmail: student.email,
+      })
+      .sort({ appliedAt: -1 })
+      .toArray();
+
+    return res.status(200).json({
+      success: true,
+      total: applications.length,
+      data: applications,
+    });
+  } catch (error) {
+    console.error('Get student applications error:', error);
+
+    return res.status(500).json({
+      success: false,
+      message: 'Failed to retrieve your applications.',
+    });
+  }
+};
