@@ -253,3 +253,65 @@ export const getMyApplications = async (req, res) => {
     });
   }
 };
+
+// Detele application
+export const cancelApplication = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    if (!ObjectId.isValid(id)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid application ID.',
+      });
+    }
+
+    const db = getDB();
+
+    const student = await db.collection('users').findOne({
+      _id: new ObjectId(req.user.id),
+    });
+
+    if (!student) {
+      return res.status(404).json({
+        success: false,
+        message: 'Student account not found.',
+      });
+    }
+
+    const application = await db.collection('applications').findOne({
+      _id: new ObjectId(id),
+      studentEmail: student.email,
+    });
+
+    if (!application) {
+      return res.status(404).json({
+        success: false,
+        message: 'Application not found or you do not have permission to cancel it.',
+      });
+    }
+
+    if (application.status !== 'pending') {
+      return res.status(409).json({
+        success: false,
+        message: 'Only pending applications can be cancelled.',
+      });
+    }
+
+    await db.collection('applications').deleteOne({
+      _id: new ObjectId(id),
+    });
+
+    return res.status(200).json({
+      success: true,
+      message: 'Application cancelled successfully.',
+    });
+  } catch (error) {
+    console.error('Cancel application error:', error);
+
+    return res.status(500).json({
+      success: false,
+      message: 'Failed to cancel application.',
+    });
+  }
+};

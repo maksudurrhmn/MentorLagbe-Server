@@ -6,6 +6,7 @@ import {
   getTutorApplications,
   updateApplicationStatus,
   getMyApplications,
+  cancelApplication,
 } from '../controllers/applicationController.js';
 
 const router = express.Router();
@@ -16,10 +17,13 @@ router.post('/', verifyToken, verifyRole('student'), createApplication);
 // Get tutor application
 router.get('/tutor', verifyToken, verifyRole('tutor'), getTutorApplications);
 
+// Get my application
+router.get('/my', verifyToken, verifyRole('student'), getMyApplications);
+
 // Update application status
 router.patch('/:id/status', verifyToken, verifyRole('tutor'), updateApplicationStatus);
 
-// Get my application
-router.get('/my', verifyToken, verifyRole('student'), getMyApplications);
+// Delete application
+router.delete('/:id', verifyToken, verifyRole('student'), cancelApplication);
 
 export default router;
