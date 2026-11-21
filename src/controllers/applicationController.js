@@ -97,3 +97,44 @@ export const createApplication = async (req, res) => {
     });
   }
 };
+
+// Get tutor applications
+export const getTutorApplications = async (req, res) => {
+  try {
+    const db = getDB();
+
+    // Get the logged-in tutor
+    const tutor = await db.collection('users').findOne({
+      _id: new ObjectId(req.user.id),
+    });
+
+    if (!tutor) {
+      return res.status(404).json({
+        success: false,
+        message: 'Tutor account not found.',
+      });
+    }
+
+    // Get applications belonging to this tutor
+    const applications = await db
+      .collection('applications')
+      .find({
+        tutorEmail: tutor.email,
+      })
+      .sort({ appliedAt: -1 })
+      .toArray();
+
+    return res.status(200).json({
+      success: true,
+      total: applications.length,
+      data: applications,
+    });
+  } catch (error) {
+    console.error('Get tutor applications error:', error);
+
+    return res.status(500).json({
+      success: false,
+      message: 'Failed to retrieve applications.',
+    });
+  }
+};
