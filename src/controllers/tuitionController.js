@@ -1,6 +1,7 @@
 import { ObjectId } from 'mongodb';
 import { getDB } from '../config/db.js';
 
+// Create tuition API
 export const createTuition = async (req, res) => {
   try {
     const {
@@ -120,3 +121,67 @@ export const createTuition = async (req, res) => {
     });
   }
 };
+
+// Get approved tuition API
+export const getPublicTuitions = async (req, res) => {
+  try {
+    const db = getDB();
+
+    const { search, subject, classLevel, mode } = req.query;
+
+    // Only show approved and active tuition posts
+    const query = {
+      approvalStatus: 'approved',
+      isActive: true,
+    };
+
+    // Escape special regex characters
+    const escapeRegex = (value) => value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+    // Search by title or subject
+    if (search?.trim()) {
+      const searchRegex = new RegExp(escapeRegex(search.trim()), 'i');
+
+      query.$or = [{ title: searchRegex }, { subject: searchRegex }];
+    }
+
+    // Filter by subject
+    if (subject?.trim()) {
+      query.subject = new RegExp(`^${escapeRegex(subject.trim())}$`, 'i');
+    }
+
+    // Filter by class level
+    if (classLevel?.trim()) {
+      query.classLevel = new RegExp(`^${escapeRegex(classLevel.trim())}$`, 'i');
+    }
+
+    // Filter by tuition mode
+    if (mode) {
+      if (!['Online', 'Offline'].includes(mode)) {
+        return res.status(400).json({
+          success: false,
+          message: 'Invalid tuition mode.',
+        });
+      }
+
+      query.mode = mode;
+    }
+
+    const tuitions = await db.collection('tuitions').find(query).sort({ createdAt: -1 }).toArray();
+
+    return res.status(200).json({
+      success: true,
+      total: tuitions.length,
+      data: tuitions,
+    });
+  } catch (error) {
+    console.error('Get public tuitions error:', error);
+
+    return res.status(500).json({
+      success: false,
+      message: 'Failed to retrieve tuition posts.',
+    });
+  }
+};
+
+// Create tuition API
