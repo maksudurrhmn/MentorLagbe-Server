@@ -138,3 +138,79 @@ export const getTutorApplications = async (req, res) => {
     });
   }
 };
+
+// Update application status
+export const updateApplicationStatus = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { status } = req.body;
+
+    if (!ObjectId.isValid(id)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid application ID.',
+      });
+    }
+
+    if (!['accepted', 'rejected'].includes(status)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Status must be accepted or rejected.',
+      });
+    }
+
+    const db = getDB();
+
+    const tutor = await db.collection('users').findOne({
+      _id: new ObjectId(req.user.id),
+    });
+
+    if (!tutor) {
+      return res.status(404).json({
+        success: false,
+        message: 'Tutor account not found.',
+      });
+    }
+
+    const application = await db.collection('applications').findOne({
+      _id: new ObjectId(id),
+      tutorEmail: tutor.email,
+    });
+
+    if (!application) {
+      return res.status(404).json({
+        success: false,
+        message: 'Application not found or you do not have permission to update it.',
+      });
+    }
+
+    if (application.status !== 'pending') {
+      return res.status(409).json({
+        success: false,
+        message: 'This application has already been processed.',
+      });
+    }
+
+    await db.collection('applications').updateOne(
+      { _id: new ObjectId(id) },
+      {
+        $set: {
+          status,
+          updatedAt: new Date(),
+        },
+      }
+    );
+
+    return res.status(200).json({
+      success: true,
+      message: `Application ${status} successfully.`,
+    });
+  } catch (error) {
+    console.error('Update application status error:', error);
+
+    return res.status(500).json({
+      success: false,
+      message: 'Failed to update application status.',
+    });
+  }
+};
