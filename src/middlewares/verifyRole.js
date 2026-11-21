@@ -24,7 +24,7 @@ const verifyRole = (...allowedRoles) => {
 
       // Retrieve the user's actual role from MongoDB
       const user = await db
-        .collection('user')
+        .collection('users')
         .findOne({ _id: new ObjectId(req.auth.userId) }, { projection: { role: 1 } });
 
       if (!user) {
