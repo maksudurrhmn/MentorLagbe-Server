@@ -488,3 +488,57 @@ export const updateTuitionStatus = async (req, res) => {
     });
   }
 };
+
+// Update tuition approval status admin only
+export const updateTuitionApproval = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { approvalStatus } = req.body;
+
+    if (!ObjectId.isValid(id)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid tuition ID.',
+      });
+    }
+
+    if (!['approved', 'rejected'].includes(approvalStatus)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Approval status must be approved or rejected.',
+      });
+    }
+
+    const db = getDB();
+
+    const result = await db.collection('tuitions').updateOne(
+      { _id: new ObjectId(id) },
+      {
+        $set: {
+          approvalStatus,
+          updatedAt: new Date(),
+        },
+      }
+    );
+
+    if (result.matchedCount === 0) {
+      return res.status(404).json({
+        success: false,
+        message: 'Tuition not found.',
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: `Tuition ${approvalStatus} successfully.`,
+      data: { approvalStatus },
+    });
+  } catch (error) {
+    console.error('Update tuition approval error:', error);
+
+    return res.status(500).json({
+      success: false,
+      message: 'Failed to update tuition approval.',
+    });
+  }
+};

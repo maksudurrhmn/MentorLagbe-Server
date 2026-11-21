@@ -9,6 +9,7 @@ import {
   updateTuition,
   deleteTuition,
   updateTuitionStatus,
+  updateTuitionApproval,
 } from '../controllers/tuitionController.js';
 
 const router = express.Router();
@@ -21,6 +22,9 @@ router.get('/my', verifyToken, verifyRole('tutor'), getMyTuitions);
 
 // Update tuition status
 router.patch('/:id/status', verifyToken, verifyRole('tutor'), updateTuitionStatus);
+
+// Update tuition approval status admin only
+router.patch('/:id/approval', verifyToken, verifyRole('admin'), updateTuitionApproval);
 
 // Get tuition post by id
 router.get('/:id', getPublicTuitionById);
