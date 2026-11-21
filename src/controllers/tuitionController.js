@@ -431,3 +431,60 @@ export const deleteTuition = async (req, res) => {
     });
   }
 };
+
+// Update tuition status
+export const updateTuitionStatus = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { isActive } = req.body;
+
+    if (!ObjectId.isValid(id)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid tuition ID.',
+      });
+    }
+
+    if (typeof isActive !== 'boolean') {
+      return res.status(400).json({
+        success: false,
+        message: 'isActive must be true or false.',
+      });
+    }
+
+    const db = getDB();
+
+    const result = await db.collection('tuitions').updateOne(
+      {
+        _id: new ObjectId(id),
+        tutorId: req.user.id,
+      },
+      {
+        $set: {
+          isActive,
+          updatedAt: new Date(),
+        },
+      }
+    );
+
+    if (result.matchedCount === 0) {
+      return res.status(404).json({
+        success: false,
+        message: 'Tuition not found or you do not own this post.',
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: `Tuition ${isActive ? 'activated' : 'deactivated'} successfully.`,
+      data: { isActive },
+    });
+  } catch (error) {
+    console.error('Update tuition status error:', error);
+
+    return res.status(500).json({
+      success: false,
+      message: 'Failed to update tuition status.',
+    });
+  }
+};
