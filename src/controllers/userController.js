@@ -266,3 +266,72 @@ export const updateUserRole = async (req, res) => {
     });
   }
 };
+
+// Get admin dashboard statistics
+export const getAdminDashboardStats = async (req, res) => {
+  try {
+    const db = getDB();
+
+    const [totalUsers, totalTutors, pendingTuitions, approvedTuitions, revenueResult] =
+      await Promise.all([
+        // Total registered users
+        db.collection('users').countDocuments(),
+
+        // Total tutors
+        db.collection('users').countDocuments({
+          role: 'tutor',
+        }),
+
+        // Pending tuition posts
+        db.collection('tuitions').countDocuments({
+          approvalStatus: 'pending',
+        }),
+
+        // Approved tuition posts
+        db.collection('tuitions').countDocuments({
+          approvalStatus: 'approved',
+        }),
+
+        // Total successful payment revenue
+        db
+          .collection('payments')
+          .aggregate([
+            {
+              $match: {
+                paymentStatus: 'paid',
+              },
+            },
+            {
+              $group: {
+                _id: null,
+                totalRevenue: {
+                  $sum: '$amount',
+                },
+              },
+            },
+          ])
+          .toArray(),
+      ]);
+
+    const totalRevenue = revenueResult[0]?.totalRevenue || 0;
+
+    return res.status(200).json({
+      success: true,
+      data: {
+        totalUsers,
+        totalTutors,
+        pendingTuitions,
+        approvedTuitions,
+        totalRevenue,
+        currency: 'USD',
+      },
+    });
+  } catch (error) {
+    console.error('Admin dashboard stats error:', error.message);
+
+    return res.status(500).json({
+      success: false,
+      message: 'Unable to retrieve admin dashboard statistics.',
+    });
+  }
+};

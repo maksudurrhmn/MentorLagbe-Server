@@ -6,11 +6,15 @@ import {
   updateUserProfile,
   getAllUsers,
   updateUserRole,
+  getAdminDashboardStats,
 } from '../controllers/userController.js';
 
 const router = express.Router();
 
 router.get('/admin/all', verifyToken, verifyRole('admin'), getAllUsers);
+
+// Get admin dashboard stats
+router.get('/admin/stats', verifyToken, verifyRole('admin'), getAdminDashboardStats);
 
 router.patch('/admin/:id/role', verifyToken, verifyRole('admin'), updateUserRole);
 
