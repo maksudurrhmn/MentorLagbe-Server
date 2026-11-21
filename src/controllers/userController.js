@@ -161,3 +161,42 @@ export const updateUserProfile = async (req, res) => {
     });
   }
 };
+
+// Get all users
+export const getAllUsers = async (req, res) => {
+  try {
+    const db = getDB();
+
+    const users = await db
+      .collection('users')
+      .find(
+        {},
+        {
+          projection: {
+            name: 1,
+            email: 1,
+            image: 1,
+            role: 1,
+            plan: 1,
+            phone: 1,
+            createdAt: 1,
+          },
+        }
+      )
+      .sort({ createdAt: -1 })
+      .toArray();
+
+    return res.status(200).json({
+      success: true,
+      total: users.length,
+      data: users,
+    });
+  } catch (error) {
+    console.error('Get all users error:', error);
+
+    return res.status(500).json({
+      success: false,
+      message: 'Failed to retrieve users.',
+    });
+  }
+};
