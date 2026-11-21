@@ -4,6 +4,7 @@ import cors from 'cors';
 import protectedRoutes from './routes/protectedRoutes.js';
 import tuitionRoutes from './routes/tuitionRoutes.js';
 import applicationRoutes from './routes/applicationRoutes.js';
+import userRoutes from './routes/userRoutes.js';
 
 const app = express();
 
@@ -21,6 +22,7 @@ app.use(express.json());
 app.use('/api/protected', protectedRoutes);
 app.use('/api/tuitions', tuitionRoutes);
 app.use('/api/applications', applicationRoutes);
+app.use('/api/users', userRoutes);
 
 // Health check
 app.get('/', (req, res) => {
