@@ -7,6 +7,7 @@ import {
   getPublicTuitionById,
   getMyTuitions,
   updateTuition,
+  deleteTuition,
 } from '../controllers/tuitionController.js';
 
 const router = express.Router();
@@ -21,5 +22,7 @@ router.get('/:id', getPublicTuitionById);
 router.post('/', verifyToken, verifyRole('tutor'), createTuition);
 // Update tuition post
 router.patch('/:id', verifyToken, verifyRole('tutor'), updateTuition);
+// Delete tuition post
+router.delete('/:id', verifyToken, verifyRole('tutor'), deleteTuition);
 
 export default router;
