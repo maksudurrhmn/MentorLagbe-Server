@@ -11,6 +11,7 @@ import {
   updateTuitionStatus,
   updateTuitionApproval,
   getAllTuitionsForAdmin,
+  getTutorDashboardStats,
 } from '../controllers/tuitionController.js';
 
 const router = express.Router();
@@ -23,6 +24,9 @@ router.get('/my', verifyToken, verifyRole('tutor'), getMyTuitions);
 
 // Get all tuition for admin
 router.get('/admin/all', verifyToken, verifyRole('admin'), getAllTuitionsForAdmin);
+
+// Get tutor dashboard stats
+router.get('/tutor/stats', verifyToken, verifyRole('tutor'), getTutorDashboardStats);
 
 // Update tuition status
 router.patch('/:id/status', verifyToken, verifyRole('tutor'), updateTuitionStatus);

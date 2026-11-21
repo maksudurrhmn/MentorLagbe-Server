@@ -580,3 +580,61 @@ export const getAllTuitionsForAdmin = async (req, res) => {
     });
   }
 };
+
+// Get tutor dashboard statistics API
+export const getTutorDashboardStats = async (req, res) => {
+  try {
+    const db = getDB();
+
+    if (!ObjectId.isValid(req.auth.userId)) {
+      return res.status(401).json({
+        success: false,
+        message: 'Invalid user account.',
+      });
+    }
+
+    const tutor = await db.collection('users').findOne({
+      _id: new ObjectId(req.auth.userId),
+      role: 'tutor',
+    });
+
+    if (!tutor) {
+      return res.status(404).json({
+        success: false,
+        message: 'Tutor account not found.',
+      });
+    }
+
+    // Find all tuition posts created by this tutor
+    const tuitions = await db
+      .collection('tuitions')
+      .find({ tutorId: tutor._id.toString() })
+      .toArray();
+
+    const totalTuitions = tuitions.length;
+
+    const activeTuitions = tuitions.filter((tuition) => tuition.isActive === true).length;
+
+    // Count all applications submitted to this tutor's tuitions
+    const totalApplicants = await db
+      .collection('applications')
+      .countDocuments({ tutorEmail: tutor.email });
+
+    return res.status(200).json({
+      success: true,
+      data: {
+        totalTuitions,
+        activeTuitions,
+        totalApplicants,
+        plan: tutor.plan || 'free',
+      },
+    });
+  } catch (error) {
+    console.error('Tutor dashboard stats error:', error.message);
+
+    return res.status(500).json({
+      success: false,
+      message: 'Unable to retrieve tutor dashboard statistics.',
+    });
+  }
+};
