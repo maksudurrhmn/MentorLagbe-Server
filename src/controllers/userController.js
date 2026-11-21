@@ -200,3 +200,69 @@ export const getAllUsers = async (req, res) => {
     });
   }
 };
+
+// Update user role
+export const updateUserRole = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { role } = req.body;
+
+    if (!ObjectId.isValid(id)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid user ID.',
+      });
+    }
+
+    const allowedRoles = ['student', 'tutor', 'admin'];
+
+    if (!allowedRoles.includes(role)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Role must be student, tutor, or admin.',
+      });
+    }
+
+    if (id === req.auth.userId) {
+      return res.status(403).json({
+        success: false,
+        message: 'You cannot change your own role.',
+      });
+    }
+
+    const db = getDB();
+
+    const result = await db.collection('users').updateOne(
+      { _id: new ObjectId(id) },
+      {
+        $set: {
+          role,
+          updatedAt: new Date(),
+        },
+      }
+    );
+
+    if (result.matchedCount === 0) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found.',
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: 'User role updated successfully.',
+      data: {
+        userId: id,
+        role,
+      },
+    });
+  } catch (error) {
+    console.error('Update user role error:', error);
+
+    return res.status(500).json({
+      success: false,
+      message: 'Failed to update user role.',
+    });
+  }
+};
