@@ -542,3 +542,41 @@ export const updateTuitionApproval = async (req, res) => {
     });
   }
 };
+
+// Get all tuition post for admin
+export const getAllTuitionsForAdmin = async (req, res) => {
+  try {
+    const db = getDB();
+    const { approvalStatus } = req.query;
+
+    const query = {};
+
+    if (approvalStatus) {
+      const allowedStatuses = ['pending', 'approved', 'rejected'];
+
+      if (!allowedStatuses.includes(approvalStatus)) {
+        return res.status(400).json({
+          success: false,
+          message: 'Invalid approval status.',
+        });
+      }
+
+      query.approvalStatus = approvalStatus;
+    }
+
+    const tuitions = await db.collection('tuitions').find(query).sort({ createdAt: -1 }).toArray();
+
+    return res.status(200).json({
+      success: true,
+      total: tuitions.length,
+      data: tuitions,
+    });
+  } catch (error) {
+    console.error('Get all admin tuitions error:', error);
+
+    return res.status(500).json({
+      success: false,
+      message: 'Failed to retrieve tuition posts.',
+    });
+  }
+};

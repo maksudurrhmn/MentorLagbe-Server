@@ -10,6 +10,7 @@ import {
   deleteTuition,
   updateTuitionStatus,
   updateTuitionApproval,
+  getAllTuitionsForAdmin,
 } from '../controllers/tuitionController.js';
 
 const router = express.Router();
@@ -19,6 +20,9 @@ router.get('/', getPublicTuitions);
 
 // Get my tuition post only
 router.get('/my', verifyToken, verifyRole('tutor'), getMyTuitions);
+
+// Get all tuition for admin
+router.get('/admin/all', verifyToken, verifyRole('admin'), getAllTuitionsForAdmin);
 
 // Update tuition status
 router.patch('/:id/status', verifyToken, verifyRole('tutor'), updateTuitionStatus);
