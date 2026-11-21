@@ -5,6 +5,7 @@ import protectedRoutes from './routes/protectedRoutes.js';
 import tuitionRoutes from './routes/tuitionRoutes.js';
 import applicationRoutes from './routes/applicationRoutes.js';
 import userRoutes from './routes/userRoutes.js';
+import paymentRoutes from './routes/paymentRoutes.js';
 
 const app = express();
 
@@ -23,6 +24,7 @@ app.use('/api/protected', protectedRoutes);
 app.use('/api/tuitions', tuitionRoutes);
 app.use('/api/applications', applicationRoutes);
 app.use('/api/users', userRoutes);
+app.use('/api/payments', paymentRoutes);
 
 // Health check
 app.get('/', (req, res) => {
