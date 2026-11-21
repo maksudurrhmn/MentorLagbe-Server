@@ -7,6 +7,7 @@ import {
   updateApplicationStatus,
   getMyApplications,
   cancelApplication,
+  getStudentDashboardStats,
 } from '../controllers/applicationController.js';
 
 const router = express.Router();
@@ -19,6 +20,9 @@ router.get('/tutor', verifyToken, verifyRole('tutor'), getTutorApplications);
 
 // Get my application
 router.get('/my', verifyToken, verifyRole('student'), getMyApplications);
+
+// Get student dashboard stats
+router.get('/student/stats', verifyToken, verifyRole('student'), getStudentDashboardStats);
 
 // Update application status
 router.patch('/:id/status', verifyToken, verifyRole('tutor'), updateApplicationStatus);

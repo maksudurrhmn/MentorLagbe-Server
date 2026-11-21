@@ -6,6 +6,7 @@ import tuitionRoutes from './routes/tuitionRoutes.js';
 import applicationRoutes from './routes/applicationRoutes.js';
 import userRoutes from './routes/userRoutes.js';
 import paymentRoutes from './routes/paymentRoutes.js';
+import { handleStripeWebhook } from './controllers/paymentController.js';
 
 const app = express();
 
@@ -17,6 +18,10 @@ app.use(
   })
 );
 
+// Stripe webhook
+app.post('/api/payments/webhook', express.raw({ type: 'application/json' }), handleStripeWebhook);
+
+// Express json
 app.use(express.json());
 
 // Routes

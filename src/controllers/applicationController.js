@@ -315,3 +315,67 @@ export const cancelApplication = async (req, res) => {
     });
   }
 };
+
+// Student dashboard statistics API
+export const getStudentDashboardStats = async (req, res) => {
+  try {
+    const db = getDB();
+
+    if (!ObjectId.isValid(req.auth.userId)) {
+      return res.status(401).json({
+        success: false,
+        message: 'Invalid user account.',
+      });
+    }
+
+    // Find the authenticated student
+    const student = await db.collection('users').findOne({
+      _id: new ObjectId(req.auth.userId),
+      role: 'student',
+    });
+
+    if (!student) {
+      return res.status(404).json({
+        success: false,
+        message: 'Student account not found.',
+      });
+    }
+
+    // Count applications by status
+    const [total, accepted, pending, rejected] = await Promise.all([
+      db.collection('applications').countDocuments({
+        studentEmail: student.email,
+      }),
+      db.collection('applications').countDocuments({
+        studentEmail: student.email,
+        status: 'accepted',
+      }),
+      db.collection('applications').countDocuments({
+        studentEmail: student.email,
+        status: 'pending',
+      }),
+      db.collection('applications').countDocuments({
+        studentEmail: student.email,
+        status: 'rejected',
+      }),
+    ]);
+
+    return res.status(200).json({
+      success: true,
+      data: {
+        totalApplications: total,
+        acceptedApplications: accepted,
+        pendingApplications: pending,
+        rejectedApplications: rejected,
+        plan: student.plan || 'free',
+      },
+    });
+  } catch (error) {
+    console.error('Student dashboard stats error:', error.message);
+
+    return res.status(500).json({
+      success: false,
+      message: 'Unable to retrieve dashboard statistics.',
+    });
+  }
+};
