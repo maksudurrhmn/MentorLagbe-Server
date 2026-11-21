@@ -7,6 +7,7 @@ import applicationRoutes from './routes/applicationRoutes.js';
 import userRoutes from './routes/userRoutes.js';
 import paymentRoutes from './routes/paymentRoutes.js';
 import { handleStripeWebhook } from './controllers/paymentController.js';
+import uploadRoutes from './routes/uploadRoutes.js';
 
 const app = express();
 
@@ -30,6 +31,7 @@ app.use('/api/tuitions', tuitionRoutes);
 app.use('/api/applications', applicationRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/payments', paymentRoutes);
+app.use('/api/uploads', uploadRoutes);
 
 // Health check
 app.get('/', (req, res) => {
