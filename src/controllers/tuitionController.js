@@ -184,4 +184,43 @@ export const getPublicTuitions = async (req, res) => {
   }
 };
 
-// Create tuition API
+// Get tuition by id
+export const getPublicTuitionById = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    if (!ObjectId.isValid(id)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid tuition ID.',
+      });
+    }
+
+    const db = getDB();
+
+    const tuition = await db.collection('tuitions').findOne({
+      _id: new ObjectId(id),
+      approvalStatus: 'approved',
+      isActive: true,
+    });
+
+    if (!tuition) {
+      return res.status(404).json({
+        success: false,
+        message: 'Tuition not found.',
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      data: tuition,
+    });
+  } catch (error) {
+    console.error('Get tuition by ID error:', error);
+
+    return res.status(500).json({
+      success: false,
+      message: 'Failed to retrieve tuition details.',
+    });
+  }
+};

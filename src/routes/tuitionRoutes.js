@@ -1,12 +1,19 @@
 import express from 'express';
 import verifyToken from '../middlewares/verifyToken.js';
 import verifyRole from '../middlewares/verifyRole.js';
-import { createTuition, getPublicTuitions } from '../controllers/tuitionController.js';
+import {
+  createTuition,
+  getPublicTuitions,
+  getPublicTuitionById,
+} from '../controllers/tuitionController.js';
 
 const router = express.Router();
 
+// Get all tuition post
 router.get('/', getPublicTuitions);
-
+// Get tuition post by id
+router.get('/:id', getPublicTuitionById);
+// Create tuition post
 router.post('/', verifyToken, verifyRole('tutor'), createTuition);
 
 export default router;
