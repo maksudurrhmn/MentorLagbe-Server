@@ -21,7 +21,7 @@ export const createTuition = async (req, res) => {
       !title ||
       !subject ||
       !classLevel ||
-      !mode ||
+      (mode === 'Offline' && !location?.trim()) ||
       monthlyFee === undefined ||
       daysPerWeek === undefined ||
       !bannerImage ||
@@ -296,7 +296,7 @@ export const updateTuition = async (req, res) => {
     }
 
     // Validate text fields
-    const textFields = ['title', 'subject', 'classLevel', 'location', 'bannerImage', 'description'];
+    const textFields = ['title', 'subject', 'classLevel', 'bannerImage', 'description'];
 
     for (const field of textFields) {
       if (field in updates && (typeof updates[field] !== 'string' || !updates[field].trim())) {
@@ -309,6 +309,18 @@ export const updateTuition = async (req, res) => {
       if (field in updates) {
         updates[field] = updates[field].trim();
       }
+    }
+
+    // Validate location
+    if ('location' in updates) {
+      if (typeof updates.location !== 'string') {
+        return res.status(400).json({
+          success: false,
+          message: 'Invalid location.',
+        });
+      }
+
+      updates.location = updates.location.trim();
     }
 
     // Validate tuition mode
@@ -357,6 +369,17 @@ export const updateTuition = async (req, res) => {
       return res.status(404).json({
         success: false,
         message: 'Tuition not found or you do not own this post.',
+      });
+    }
+
+    // Validate location based on tuition mode
+    const finalMode = updates.mode ?? tuition?.mode;
+    const finalLocation = updates.location ?? tuition?.location ?? '';
+
+    if (finalMode === 'Offline' && !finalLocation.trim()) {
+      return res.status(400).json({
+        success: false,
+        message: 'Location is required for offline tuition.',
       });
     }
 
