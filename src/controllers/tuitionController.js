@@ -185,6 +185,7 @@ export const getPublicTuitions = async (req, res) => {
 };
 
 // Get tuition by id
+
 export const getPublicTuitionById = async (req, res) => {
   try {
     const { id } = req.params;
@@ -221,6 +222,35 @@ export const getPublicTuitionById = async (req, res) => {
     return res.status(500).json({
       success: false,
       message: 'Failed to retrieve tuition details.',
+    });
+  }
+};
+
+// Get my tuition API
+
+export const getMyTuitions = async (req, res) => {
+  try {
+    const db = getDB();
+
+    const tuitions = await db
+      .collection('tuitions')
+      .find({
+        tutorId: req.user.id,
+      })
+      .sort({ createdAt: -1 })
+      .toArray();
+
+    return res.status(200).json({
+      success: true,
+      total: tuitions.length,
+      data: tuitions,
+    });
+  } catch (error) {
+    console.error('Get my tuitions error:', error);
+
+    return res.status(500).json({
+      success: false,
+      message: 'Failed to retrieve your tuition posts.',
     });
   }
 };
