@@ -249,3 +249,31 @@ export const handleStripeWebhook = async (req, res) => {
     });
   }
 };
+
+// Get all payment records for admin
+export const getAdminPayments = async (req, res) => {
+  try {
+    const db = getDB();
+
+    const payments = await db.collection('payments').find({}).sort({ paidAt: -1 }).toArray();
+
+    const totalRevenue = payments.reduce((total, payment) => total + (payment.amount || 0), 0);
+
+    return res.status(200).json({
+      success: true,
+      message: 'Payment history retrieved successfully.',
+      data: {
+        payments,
+        totalPayments: payments.length,
+        totalRevenue,
+      },
+    });
+  } catch (error) {
+    console.error('Admin payment retrieval failed:', error.message);
+
+    return res.status(500).json({
+      success: false,
+      message: 'Unable to retrieve payment history.',
+    });
+  }
+};
