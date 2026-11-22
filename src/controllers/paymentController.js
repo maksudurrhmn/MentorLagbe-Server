@@ -277,3 +277,54 @@ export const getAdminPayments = async (req, res) => {
     });
   }
 };
+
+// Get payment history for the authenticated user
+export const getMyPayments = async (req, res) => {
+  try {
+    if (!ObjectId.isValid(req.auth.userId)) {
+      return res.status(401).json({
+        success: false,
+        message: 'Invalid user account.',
+      });
+    }
+
+    const db = getDB();
+
+    const user = await db.collection('users').findOne({
+      _id: new ObjectId(req.auth.userId),
+    });
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User account not found.',
+      });
+    }
+
+    const payments = await db
+      .collection('payments')
+      .find({ userEmail: user.email })
+      .sort({ paidAt: -1 })
+      .toArray();
+
+    const totalPaid = payments.reduce((total, payment) => total + (payment.amount || 0), 0);
+
+    return res.status(200).json({
+      success: true,
+      message: 'Payment history retrieved successfully.',
+      data: {
+        payments,
+        totalPayments: payments.length,
+        totalPaid,
+        plan: user.plan || 'free',
+      },
+    });
+  } catch (error) {
+    console.error('User payment retrieval failed:', error.message);
+
+    return res.status(500).json({
+      success: false,
+      message: 'Unable to retrieve payment history.',
+    });
+  }
+};
