@@ -123,13 +123,13 @@ export const createTuition = async (req, res) => {
 };
 
 // Get approved tuition API
+
 export const getPublicTuitions = async (req, res) => {
   try {
     const db = getDB();
 
     const { search, subject, classLevel, mode } = req.query;
 
-    // Only show approved and active tuition posts
     const query = {
       approvalStatus: 'approved',
       isActive: true,
@@ -138,33 +138,46 @@ export const getPublicTuitions = async (req, res) => {
     // Escape special regex characters
     const escapeRegex = (value) => value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
-    // Search by title or subject
-    if (search?.trim()) {
-      const searchRegex = new RegExp(escapeRegex(search.trim()), 'i');
+    // Flexible whitespace matching
+    const flexibleText = (value) => escapeRegex(value.trim()).replace(/\s+/g, '\\s+');
 
-      query.$or = [{ title: searchRegex }, { subject: searchRegex }];
-    }
-
-    // Filter by subject
+    // Match subject names as complete words or phrases.
+    // This also supports combined subjects.
     if (subject?.trim()) {
-      query.subject = new RegExp(`^${escapeRegex(subject.trim())}$`, 'i');
+      const subjectPattern = flexibleText(subject);
+      query.subject = new RegExp(`(^|[^a-zA-Z0-9])${subjectPattern}($|[^a-zA-Z0-9])`, 'i');
     }
 
-    // Filter by class level
+    // Match class levels with different dash characters.
     if (classLevel?.trim()) {
-      query.classLevel = new RegExp(`^${escapeRegex(classLevel.trim())}$`, 'i');
+      const classPattern = classLevel
+        .trim()
+        .split(/[-–—]/)
+        .map((part) => flexibleText(part))
+        .join('\\s*[-–—]\\s*');
+
+      query.classLevel = new RegExp(`^${classPattern}$`, 'i');
     }
 
-    // Filter by tuition mode
-    if (mode) {
-      if (!['Online', 'Offline'].includes(mode)) {
+    // Match tuition mode
+    if (mode?.trim()) {
+      const normalizedMode = mode.trim().toLowerCase();
+
+      if (!['online', 'offline'].includes(normalizedMode)) {
         return res.status(400).json({
           success: false,
           message: 'Invalid tuition mode.',
         });
       }
 
-      query.mode = mode;
+      query.mode = new RegExp(`^${escapeRegex(normalizedMode)}$`, 'i');
+    }
+
+    // Search by title or subject
+    if (search?.trim()) {
+      const searchRegex = new RegExp(flexibleText(search), 'i');
+
+      query.$or = [{ title: searchRegex }, { subject: searchRegex }];
     }
 
     const tuitions = await db.collection('tuitions').find(query).sort({ createdAt: -1 }).toArray();
